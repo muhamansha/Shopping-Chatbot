@@ -1,5 +1,502 @@
 {
-  "Laptop MSI": 1499.0,
-  "Laptop": 1499.0,
-  "GTA VI  Deluxe": 179.0
+  "Apples": {
+    "price": 6.0,
+    "unit": "1 kg"
+  },
+  "Bananas": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Oranges": {
+    "price": 5.0,
+    "unit": "1 kg"
+  },
+  "Grapes": {
+    "price": 10.0,
+    "unit": "1 kg"
+  },
+  "Mangoes": {
+    "price": 8.0,
+    "unit": "1 kg"
+  },
+  "Watermelon": {
+    "price": 3.0,
+    "unit": "1 kg"
+  },
+  "Pineapple": {
+    "price": 6.0,
+    "unit": "1 piece"
+  },
+  "Pomegranate": {
+    "price": 10.0,
+    "unit": "1 kg"
+  },
+  "Lemons": {
+    "price": 6.0,
+    "unit": "1 kg"
+  },
+  "Pears": {
+    "price": 8.0,
+    "unit": "1 kg"
+  },
+  "Tomatoes": {
+    "price": 5.0,
+    "unit": "1 kg"
+  },
+  "Potatoes": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Onions": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Carrots": {
+    "price": 5.0,
+    "unit": "1 kg"
+  },
+  "Cucumbers": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Cabbage": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Cauliflower": {
+    "price": 5.0,
+    "unit": "1 piece"
+  },
+  "Green chillies": {
+    "price": 8.0,
+    "unit": "1 kg"
+  },
+  "Capsicum": {
+    "price": 7.0,
+    "unit": "1 kg"
+  },
+  "Spinach": {
+    "price": 3.0,
+    "unit": "1 bunch"
+  },
+  "Garlic": {
+    "price": 12.0,
+    "unit": "1 kg"
+  },
+  "Ginger": {
+    "price": 10.0,
+    "unit": "1 kg"
+  },
+  "Eggplant": {
+    "price": 5.0,
+    "unit": "1 kg"
+  },
+  "Okra": {
+    "price": 8.0,
+    "unit": "1 kg"
+  },
+  "Coriander": {
+    "price": 2.0,
+    "unit": "1 bunch"
+  },
+  "Fresh milk": {
+    "price": 7.0,
+    "unit": "1 litre"
+  },
+  "Yogurt": {
+    "price": 2.0,
+    "unit": "170 g"
+  },
+  "Curd": {
+    "price": 7.0,
+    "unit": "1 kg"
+  },
+  "Butter": {
+    "price": 7.0,
+    "unit": "200 g"
+  },
+  "Cheese slices": {
+    "price": 8.0,
+    "unit": "200 g"
+  },
+  "Cheddar cheese": {
+    "price": 10.0,
+    "unit": "200 g"
+  },
+  "Paneer": {
+    "price": 7.0,
+    "unit": "200 g"
+  },
+  "Egg": {
+    "price": 0.8,
+    "unit": "1 piece"
+  },
+  "Eggs": {
+    "price": 23.0,
+    "unit": "Tray of 30"
+  },
+  "Fresh cream": {
+    "price": 5.0,
+    "unit": "200 ml"
+  },
+  "Basmati rice": {
+    "price": 10.0,
+    "unit": "1 kg"
+  },
+  "White rice": {
+    "price": 6.0,
+    "unit": "1 kg"
+  },
+  "Wheat flour": {
+    "price": 6.0,
+    "unit": "1 kg"
+  },
+  "All-purpose flour": {
+    "price": 6.0,
+    "unit": "1 kg"
+  },
+  "Sugar": {
+    "price": 4.0,
+    "unit": "1 kg"
+  },
+  "Salt": {
+    "price": 2.0,
+    "unit": "1 kg"
+  },
+  "Oats": {
+    "price": 6.0,
+    "unit": "500 g"
+  },
+  "Semolina": {
+    "price": 5.0,
+    "unit": "1 kg"
+  },
+  "Lentils": {
+    "price": 8.0,
+    "unit": "1 kg"
+  },
+  "Chickpeas": {
+    "price": 7.0,
+    "unit": "1 kg"
+  },
+  "Kidney beans": {
+    "price": 6.0,
+    "unit": "500 g"
+  },
+  "Pasta": {
+    "price": 4.0,
+    "unit": "500 g"
+  },
+  "Vermicelli": {
+    "price": 3.0,
+    "unit": "200 g"
+  },
+  "White bread": {
+    "price": 5.0,
+    "unit": "1 loaf"
+  },
+  "Brown bread": {
+    "price": 6.0,
+    "unit": "1 loaf"
+  },
+  "Burger buns": {
+    "price": 5.0,
+    "unit": "Pack of 6"
+  },
+  "Hot dog buns": {
+    "price": 5.0,
+    "unit": "Pack of 6"
+  },
+  "Croissant": {
+    "price": 3.0,
+    "unit": "1 piece"
+  },
+  "Pita bread": {
+    "price": 4.0,
+    "unit": "1 pack"
+  },
+  "Cake": {
+    "price": 4.0,
+    "unit": "1 piece"
+  },
+  "Biscuits": {
+    "price": 3.0,
+    "unit": "1 packet"
+  },
+  "Whole chicken": {
+    "price": 23.0,
+    "unit": "1 kg"
+  },
+  "Chicken breast": {
+    "price": 26.0,
+    "unit": "1 kg"
+  },
+  "Chicken legs": {
+    "price": 18.0,
+    "unit": "1 kg"
+  },
+  "Beef": {
+    "price": 35.0,
+    "unit": "1 kg"
+  },
+  "Lamb": {
+    "price": 45.0,
+    "unit": "1 kg"
+  },
+  "Fish": {
+    "price": 25.0,
+    "unit": "1 kg"
+  },
+  "Prawns": {
+    "price": 35.0,
+    "unit": "1 kg"
+  },
+  "Frozen nuggets": {
+    "price": 12.0,
+    "unit": "500 g"
+  },
+  "Frozen fish fingers": {
+    "price": 12.0,
+    "unit": "500 g"
+  },
+  "Sunflower oil": {
+    "price": 12.0,
+    "unit": "1 litre"
+  },
+  "Olive oil": {
+    "price": 18.0,
+    "unit": "500 ml"
+  },
+  "Ghee": {
+    "price": 15.0,
+    "unit": "500 g"
+  },
+  "Tomato ketchup": {
+    "price": 7.0,
+    "unit": "500 g"
+  },
+  "Mayonnaise": {
+    "price": 9.0,
+    "unit": "400 ml"
+  },
+  "Soy sauce": {
+    "price": 6.0,
+    "unit": "250 ml"
+  },
+  "Vinegar": {
+    "price": 4.0,
+    "unit": "500 ml"
+  },
+  "Mixed spices": {
+    "price": 5.0,
+    "unit": "100 g"
+  },
+  "Turmeric powder": {
+    "price": 3.0,
+    "unit": "100 g"
+  },
+  "Chilli powder": {
+    "price": 4.0,
+    "unit": "100 g"
+  },
+  "Tea": {
+    "price": 10.0,
+    "unit": "250 g"
+  },
+  "Coffee": {
+    "price": 12.0,
+    "unit": "100 g"
+  },
+  "Potato chips": {
+    "price": 3.0,
+    "unit": "1 packet"
+  },
+  "Chocolate bar": {
+    "price": 4.0,
+    "unit": "1 piece"
+  },
+  "Candies": {
+    "price": 3.0,
+    "unit": "100 g"
+  },
+  "Popcorn": {
+    "price": 4.0,
+    "unit": "1 packet"
+  },
+  "Instant noodles": {
+    "price": 2.0,
+    "unit": "1 packet"
+  },
+  "Chocolate biscuits": {
+    "price": 5.0,
+    "unit": "1 packet"
+  },
+  "Nuts": {
+    "price": 12.0,
+    "unit": "250 g"
+  },
+  "Ice cream": {
+    "price": 15.0,
+    "unit": "1 litre"
+  },
+  "Cereal": {
+    "price": 15.0,
+    "unit": "500 g"
+  },
+  "Peanut butter": {
+    "price": 12.0,
+    "unit": "340 g"
+  },
+  "Bottled water": {
+    "price": 1.0,
+    "unit": "500 ml"
+  },
+  "Bottled water (1.5 litres)": {
+    "price": 2.0,
+    "unit": "1.5 litres"
+  },
+  "Mineral water": {
+    "price": 6.0,
+    "unit": "Pack of 6 x 1.5 L"
+  },
+  "Orange juice": {
+    "price": 7.0,
+    "unit": "1 litre"
+  },
+  "Apple juice": {
+    "price": 7.0,
+    "unit": "1 litre"
+  },
+  "Soft drink": {
+    "price": 2.0,
+    "unit": "330 ml"
+  },
+  "Soft drink (1.5 litres)": {
+    "price": 5.0,
+    "unit": "1.5 litres"
+  },
+  "Iced tea": {
+    "price": 4.0,
+    "unit": "500 ml"
+  },
+  "Sports drink": {
+    "price": 4.0,
+    "unit": "500 ml"
+  },
+  "Dishwashing liquid": {
+    "price": 6.0,
+    "unit": "500 ml"
+  },
+  "Laundry detergent": {
+    "price": 12.0,
+    "unit": "1 kg"
+  },
+  "Fabric softener": {
+    "price": 10.0,
+    "unit": "1 litre"
+  },
+  "Floor cleaner": {
+    "price": 8.0,
+    "unit": "1 litre"
+  },
+  "Toilet cleaner": {
+    "price": 7.0,
+    "unit": "500 ml"
+  },
+  "Disinfectant": {
+    "price": 8.0,
+    "unit": "500 ml"
+  },
+  "Sponges": {
+    "price": 4.0,
+    "unit": "Pack of 3"
+  },
+  "Garbage bags": {
+    "price": 8.0,
+    "unit": "1 pack"
+  },
+  "Paper towels": {
+    "price": 7.0,
+    "unit": "2 rolls"
+  },
+  "Tissues": {
+    "price": 5.0,
+    "unit": "1 box"
+  },
+  "Bathing soap": {
+    "price": 3.0,
+    "unit": "1 bar"
+  },
+  "Shampoo": {
+    "price": 12.0,
+    "unit": "400 ml"
+  },
+  "Conditioner": {
+    "price": 12.0,
+    "unit": "400 ml"
+  },
+  "Toothpaste": {
+    "price": 6.0,
+    "unit": "100 ml"
+  },
+  "Toothbrush": {
+    "price": 5.0,
+    "unit": "1 piece"
+  },
+  "Handwash": {
+    "price": 6.0,
+    "unit": "250 ml"
+  },
+  "Facial tissues": {
+    "price": 5.0,
+    "unit": "1 box"
+  },
+  "Toilet paper": {
+    "price": 10.0,
+    "unit": "Pack of 4"
+  },
+  "Cotton buds": {
+    "price": 4.0,
+    "unit": "1 pack"
+  },
+  "Deodorant": {
+    "price": 12.0,
+    "unit": "1 can"
+  },
+  "Aluminium foil": {
+    "price": 8.0,
+    "unit": "1 roll"
+  },
+  "Cling film": {
+    "price": 6.0,
+    "unit": "1 roll"
+  },
+  "Zip-lock bags": {
+    "price": 8.0,
+    "unit": "1 pack"
+  },
+  "Batteries": {
+    "price": 10.0,
+    "unit": "Pack of 4"
+  },
+  "Matchbox": {
+    "price": 1.0,
+    "unit": "1 box"
+  },
+  "Disposable plates": {
+    "price": 8.0,
+    "unit": "Pack of 25"
+  },
+  "Disposable cups": {
+    "price": 6.0,
+    "unit": "Pack of 25"
+  },
+  "Food storage containers": {
+    "price": 15.0,
+    "unit": "1 set"
+  },
+  "Shopping bag": {
+    "price": 1.0,
+    "unit": "1 piece"
+  }
 }
