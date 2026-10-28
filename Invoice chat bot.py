@@ -13,6 +13,7 @@ import re
 import sys
 import threading
 import time
+import traceback
 
 # ================= SETTINGS ================= #
 
@@ -49,17 +50,52 @@ def write_json(name, data):
     os.replace(tmp, file_path(name))
 
 
+def parse_unit(unit):
+    """('kg', kg_amount) for '1 kg', 'kg', 'per kg', '500 g'; ('pc', 1) for '1 piece', 'pc', ..."""
+    s = str(unit).strip().lower()
+    m = re.match(r"^(?:(\d+(?:\.\d+)?)\s*)?(?:per\s+)?(kilograms?|kilos?|kgs?|grams?|gms?|g)\b", s)
+    if m:
+        amount = float(m.group(1) or 1)
+        kg = amount if m.group(2).startswith("k") else amount / 1000
+        return "kg", (kg or 1.0)
+    return "pc", 1.0
+
+
 def read_stock():
-    """Returns {name: {"price": float, "unit": "pc" | "kg"}}. Old plain-number items count as per piece."""
+    """
+    Returns {name: {"price": float, "unit": "pc" | "kg"}} (price is always per piece or per 1 kg).
+    Understands plain numbers, {"price", "unit"} with units like "kg", "1 kg", "500 g", "1 piece".
+    """
     out = {}
     for name, v in read_json("stock_data.json", {}).items():
-        price, unit = (v.get("price", 0), v.get("unit", "pc")) if isinstance(v, dict) else (v, "pc")
+        if isinstance(v, dict):
+            price = v.get("price", v.get("Price", v.get("rate", 0)))
+            unit = v.get("unit", v.get("Unit", "pc"))
+        elif isinstance(v, (list, tuple)) and v:
+            price, unit = v[0], (v[1] if len(v) > 1 else "pc")
+        else:
+            price, unit = v, "pc"
         try:
             price = float(price)
         except (TypeError, ValueError):
             price = 0.0
-        out[name] = {"price": price, "unit": "kg" if str(unit).lower() == "kg" else "pc"}
+        kind, amount = parse_unit(unit)
+        if kind == "kg":
+            price = round(price / amount, 4)
+        out[name] = {"price": price, "unit": kind}
     return out
+
+
+def save_stock_item(name, price, unit):
+    """Adds/updates ONE item without touching how the other items are stored."""
+    raw = read_json("stock_data.json", {})
+    verbose = any(isinstance(v, dict) and re.match(r"\s*\d", str(v.get("unit", ""))) for v in raw.values())
+    label = ("1 kg" if verbose else "kg") if unit == "kg" else ("1 piece" if verbose else "pc")
+    for k in list(raw):
+        if k.lower() == name.lower():
+            raw.pop(k)
+    raw[name] = {"price": price, "unit": label}
+    write_json("stock_data.json", raw)
 
 
 def normalize_phone(phone):
@@ -116,6 +152,15 @@ def fmt_qty(qty, unit):
 
 def fmt_price(price, unit):
     return f"{price:.2f}" + ("/kg" if unit == "kg" else "")
+
+
+def normalize_fractions(text):
+    """'half a kilo' -> '0.5 kg', 'quarter kilo' -> '0.25 kg', 'three quarters of a kilo' -> '0.75 kg'."""
+    kilo = r"(?:kilo|kilogram|kg)s?\b"
+    t = re.sub(rf"\b(?:three|3)\s+quarters?\s+(?:of\s+a\s+)?{kilo}", "0.75 kg", text, flags=re.I)
+    t = re.sub(rf"(?<!\ba )\b(?:half|1/2)\s+(?:a\s+|of\s+a\s+)?{kilo}", "0.5 kg", t, flags=re.I)
+    t = re.sub(rf"\b(?:a\s+)?quarter\s+(?:of\s+a\s+)?{kilo}", "0.25 kg", t, flags=re.I)
+    return t
 
 
 # ================= DARK THEME ================= #
@@ -430,12 +475,12 @@ class InvoiceBot:
         if not re.search(r"[A-Za-z]", chunk):
             return None
 
-        qty, rest, weighed = 1.0, chunk, False
+        qty, rest, weighed, has_qty = 1.0, chunk, False, False
         w = WEIGHT_RE.search(chunk)
         if w:
             amount = float(w.group(1))
             qty = amount if w.group(2).lower().startswith("k") else amount / 1000
-            weighed = True
+            weighed, has_qty = True, True
             rest = (chunk[:w.start()] + " " + chunk[w.end():]).strip()
             rest = re.sub(r"^(?:of|x|×)\s+", "", rest, flags=re.I)
             rest = re.sub(r"\s*(?:per|/|a)\s*(?:kg|kilo)s?\b", "", rest, flags=re.I).strip()
@@ -443,22 +488,24 @@ class InvoiceBot:
             m = re.match(rf"^({NUM})\s*(?:x|×|pcs?|units?|nos)?\s+(.+)$", chunk, re.I)
             m2 = re.match(r"^(.+?)\s+[x×]\s*(\d+)\s*(.*)$", chunk, re.I)
             if m:
-                qty, rest = float(m.group(1)), m.group(2)
+                qty, rest, has_qty = float(m.group(1)), m.group(2), True
             elif m2:
-                qty, rest = float(m2.group(2)), (m2.group(1) + " " + m2.group(3)).strip()
+                qty, rest, has_qty = float(m2.group(2)), (m2.group(1) + " " + m2.group(3)).strip(), True
             rest = re.sub(r"\s*(?:per|/)\s*(?:kg|kilo)s?\b", "", rest, flags=re.I).strip()
 
-        price = None
+        price, bare = None, False
         p = re.match(rf"^(.+?)(?:\s+(?:at|for|price|each)\s+|\s*@\s*)({NUM})\s*(?:each|/-)?$", rest, re.I)
         if not p:
             p = re.match(rf"^(.+?)\s+({NUM})\s*(?:each|/-)?$", rest, re.I)
+            bare = p is not None
         if p:
             rest, price = p.group(1), float(p.group(2))
 
         desc = re.sub(r"\s+(?:each|@|at|of)$", "", rest.strip(), flags=re.I).strip()
         if not desc or qty <= 0:
             return None
-        return {"qty": qty, "desc": desc, "price": price, "weighed": weighed}
+        return {"qty": qty, "desc": desc, "price": price, "weighed": weighed,
+                "has_qty": has_qty, "bare": bare}
 
     def resolve(self, chunk):
         """
@@ -472,6 +519,8 @@ class InvoiceBot:
         unit = "kg" if weighed else "pc"
 
         match = self.find_stock(desc)
+        if match and p["bare"] and not weighed and not p["has_qty"] and price is not None and price <= 999:
+            qty, price = price, None          # "tomatoes 3" means 3 (kg), not a price of 3
         if match:
             info = self.stock[match]
             desc = match
@@ -636,6 +685,9 @@ class InvoiceBot:
         if not text:
             return ""
 
+        text = normalize_fractions(text)
+        low = text.lower()
+
         # always use the latest stock/customers (the Stock Manager app may have changed them)
         self.stock = read_stock()
         self.customers = read_json("customers_data.json", {})
@@ -693,8 +745,7 @@ class InvoiceBot:
             unit = "kg" if m.group(3) else "pc"
             existing = self.find_stock(name)
             name = existing or name[:1].upper() + name[1:]
-            self.stock[name] = {"price": price, "unit": unit}
-            write_json("stock_data.json", self.stock)
+            save_stock_item(name, price, unit)
             return f"Saved to stock: {name} = {price:.2f} " + ("per kg" if unit == "kg" else "per piece")
 
         m = re.match(r"^(?:invoice for|bill to|customer|client|for)\s+(.+)$", text, re.I)
@@ -775,12 +826,9 @@ def _run_to_number(run):
 
 def spoken_to_digits(text):
     """'three laptops at two thousand five hundred' -> '3 laptops at 2500'; 'half a kilo' -> '0.5 kg'."""
-    kilo = r"(?:kilo|kilogram|kg)s?\b"
-    t = re.sub(rf"\bthree\s+quarters?\s+(?:of\s+a\s+)?{kilo}", "0.75 kg", text, flags=re.I)
-    t = re.sub(rf"\b(?:half|a\s+half)\s+(?:a\s+|of\s+a\s+)?{kilo}", "0.5 kg", t, flags=re.I)
-    t = re.sub(rf"\b(?:a\s+)?quarter\s+(?:of\s+a\s+)?{kilo}", "0.25 kg", t, flags=re.I)
-    t = _RUN.sub(lambda m: _run_to_number(m.group(0)), t)
+    t = _RUN.sub(lambda m: _run_to_number(m.group(0)), text)
     t = re.sub(r"\b(\d+)\s+and\s+a\s+half\b", lambda m: f"{m.group(1)}.5", t, flags=re.I)
+    t = normalize_fractions(t)
     t = re.sub(r"\b[Aa]\s+(?=\d)", "", t)
     return t.strip()
 
@@ -1000,9 +1048,15 @@ def speakable(reply, net_total=None):
 
 # ================= UI WIDGETS ================= #
 
+_NAMED = {"white": "ffffff", "black": "000000"}
+
+
 def _rgb(color):
-    c = color.lstrip("#")
-    return tuple(int(c[i:i + 2], 16) for i in (0, 2, 4))
+    c = _NAMED.get(color.lower(), color.lstrip("#"))
+    try:
+        return tuple(int(c[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (255, 255, 255)
 
 
 def blend(c1, c2, t):
@@ -1058,7 +1112,7 @@ class HeaderBar(tk.Canvas):
         x1, y1, x2, y2 = self.bbox(t)
         pill = self.create_polygon(rounded_points(x1 - 14, y1 - 7, x2 + 14, y2 + 7, 15), smooth=True,
                                    fill=SURFACE2, outline=BORDER)
-        self.tag_lower(pill, t)
+        self.tag_raise(t)
 
 
 class Bubble(tk.Canvas):
@@ -1248,8 +1302,18 @@ class RoundedEntry(tk.Canvas):
 
 # ================= CHAT WINDOW ================= #
 
+def log_error(text):
+    try:
+        with open(file_path("error_log.txt"), "a", encoding="utf-8") as f:
+            f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n" + text + "\n" + "-" * 60 + "\n")
+    except OSError:
+        pass
+
+
 def main_app(current_user=""):
     window = tk.Tk()
+    window.report_callback_exception = lambda exc, val, tb: log_error(
+        "".join(traceback.format_exception(exc, val, tb)))
     window.title("PRO TAX INVOICE CHATBOT")
     setup_theme(window)
     st = ttk.Style(window)
@@ -1289,12 +1353,12 @@ def main_app(current_user=""):
     contact_label.pack(fill="x", padx=22, pady=(0, 14))
     tk.Frame(panel, bg=BORDER, height=1).pack(fill="x", padx=22)
 
-    columns = ("#", "Item", "Qty", "Price", "Total")
+    columns = ("No", "Item", "Qty", "Price", "Total")
     widths = (32, 150, 72, 92, 84)
     tree = ttk.Treeview(panel, columns=columns, show="headings", height=12)
     for col, wd in zip(columns, widths):
         tree.heading(col, text=col)
-        tree.column(col, width=wd, anchor="w" if col in ("#", "Item") else "e")
+        tree.column(col, width=wd, anchor="w" if col in ("No", "Item") else "e")
     tree.pack(fill="both", expand=True, padx=16, pady=12)
 
     tk.Frame(panel, bg=BORDER, height=1).pack(fill="x", padx=22)
@@ -1414,7 +1478,7 @@ def main_app(current_user=""):
             if who == "user":
                 col = tk.Frame(row, bg=BG)
                 col.pack(side="right")
-                b = Bubble(col, part, ACCENT, "white", (FONT_FAMILY, 11), bubble_width())
+                b = Bubble(col, part, ACCENT, "#ffffff", (FONT_FAMILY, 11), bubble_width())
                 wrap_bubbles.append(b)
                 anchor = "e"
             else:
@@ -1462,25 +1526,15 @@ def main_app(current_user=""):
     # ---------- sending ---------- #
 
     def reply_later(reply):
-        # Show replies immediately: do not rely on a delayed animation callback.
-        try:
+        typing = show_typing()
+
+        def finish():
+            typing.destroy()
             refresh_panel()
-            add_message(str(reply), "bot")
-        except Exception as exc:
-            import traceback
-            traceback.print_exc()
-            # A plain Tk label is a safe fallback if the animated bubble fails.
-            fallback = tk.Label(inner, text=str(reply), bg=SURFACE2, fg=TEXT,
-                                justify="left", anchor="w", wraplength=650,
-                                font=(FONT_FAMILY, 11))
-            fallback.pack(anchor="w", padx=20, pady=8)
-            canvas.yview_moveto(1.0)
-        if speak_var.get():
-            try:
-                speaker.say(speakable(str(reply), bot.totals()[2] if bot.items else None))
-            except Exception:
-                import traceback
-                traceback.print_exc()
+            add_message(reply, "bot")
+            if speak_var.get():
+                speaker.say(speakable(reply, bot.totals()[2] if bot.items else None))
+        window.after(420, finish)
 
     def submit(text=None):
         if text is None:
@@ -1489,19 +1543,14 @@ def main_app(current_user=""):
         text = text.strip()
         if not text:
             return
-        try:
-            add_message(text, "user")
-        except Exception:
-            import traceback
-            traceback.print_exc()
+        add_message(text, "user")
         try:
             reply = bot.handle(text)
-        except Exception as exc:
-            import traceback
-            traceback.print_exc()
-            reply = f"Something went wrong: {exc}"
-        reply_later(reply or "I couldn't process that command. Try 'help'.")
-        entry.focus_set()
+        except Exception as e:          # never let the chat crash
+            reply = f"Something went wrong: {e}"
+        if reply:
+            reply_later(reply)
+        entry.focus()
 
     # ================= voice assistant (UI) ================= #
 
@@ -1811,7 +1860,25 @@ def login_screen():
     return result["user"]
 
 
+def run():
+    try:
+        user = login_screen()
+        if user:
+            main_app(user)
+    except Exception:
+        text = traceback.format_exc()
+        log_error(text)
+        print(text)
+        try:
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("Pro Invoice - startup error",
+                                 "The app hit an error and had to close.\n\n"
+                                 f"It was saved to:\n{file_path('error_log.txt')}\n\n" + text[-900:])
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
-    user = login_screen()
-    if user:
-        main_app(user)
+    run()
